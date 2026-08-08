@@ -1,0 +1,14 @@
+{
+  "name": "acquisitions-api",
+  "version": "1.0.0",
+  "description": "Build and deploy a production ready api",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "Yadaw",
+  "license": "ISC",
+  "type": "module"
+}
