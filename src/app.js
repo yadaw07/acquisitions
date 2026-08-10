@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import logger from '#config/logger.js';
 
 import authRoutes from '#routes/auth.routes.js';
+import { securityMiddleware } from '#middleware/security.middleware.js';
 
 const app = express();
 
@@ -25,6 +26,9 @@ app.use(
   })
 );
 
+app.use(securityMiddleware);
+
+// Routes
 app.get('/', (req, res) => {
   logger.info('Hello from Acquisitions!');
 
