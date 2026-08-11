@@ -9,9 +9,9 @@ import {
 
 const router = express.Router();
 
-router.get('/', getAllUsers);
-router.get('/:id', getUserById);
-router.put('/:id', updateUserById);
-router.delete('/:id', deleteUserById);
+router.get('/', authenticate, requireRole('admin'), getAllUsers);
+router.get('/:id', authenticate, getUserById);
+router.put('/:id', authenticate, updateUserById);
+router.delete('/:id', authenticate, deleteUserById);
 
 export default router;
