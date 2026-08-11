@@ -8,6 +8,8 @@ import cookieParser from 'cookie-parser';
 import logger from '#config/logger.js';
 
 import authRoutes from '#routes/auth.routes.js';
+import usersRoutes from '#routes/users.routes.js';
+
 import { securityMiddleware } from '#middleware/security.middleware.js';
 
 const app = express();
@@ -49,5 +51,5 @@ app.get('/api', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/users', usersRoutes);
 export default app;
