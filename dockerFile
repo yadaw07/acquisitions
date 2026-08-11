@@ -1,0 +1,38 @@
+# ---- Base ----
+FROM node:20-alpine AS base
+
+WORKDIR /app
+
+# Needed by some native deps (bcrypt) on alpine
+RUN apk add --no-cache libc6-compat
+
+# ---- Dependencies (cached layer) ----
+FROM base AS deps
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# ---- Development ----
+FROM base AS development
+ENV NODE_ENV=development
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+COPY . .
+EXPOSE 3000
+# --watch gives you hot reload without nodemon as a dependency
+CMD ["node", "--watch", "src/index.js"]
+
+# ---- Production dependencies only ----
+FROM base AS prod-deps
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# ---- Production ----
+FROM base AS production
+ENV NODE_ENV=production
+# Run as non-root
+RUN addgroup -g 1001 -S nodejs && adduser -S expressjs -u 1001
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --chown=expressjs:nodejs . .
+USER expressjs
+EXPOSE 3000
+CMD ["node", "src/index.js"]
