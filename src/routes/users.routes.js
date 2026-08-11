@@ -7,6 +7,8 @@ import {
   deleteUserById,
 } from '#controllers/users.controller.js';
 
+import { authenticate, requireRole } from '#middleware/auth.middleware.js';
+
 const router = express.Router();
 
 router.get('/', authenticate, requireRole('admin'), getAllUsers);
