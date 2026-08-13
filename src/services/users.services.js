@@ -54,8 +54,8 @@ export const updateUser = async (userId, updates) => {
         name: users.name,
         email: users.email,
         role: users.role,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
+        created_at: users.created_at,
+        updated_at: users.updated_at,
       });
   } catch (e) {
     logger.error('Error updating user', e);

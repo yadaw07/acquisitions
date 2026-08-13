@@ -1,38 +1,42 @@
-# ---- Base ----
-FROM node:20-alpine AS base
+# Multi-stage Dockerfile for Node.js acquisitions application
 
+# Base image with Node.js
+FROM node:18-alpine AS base
+
+# Set working directory
 WORKDIR /app
 
-# Needed by some native deps (bcrypt) on alpine
-RUN apk add --no-cache libc6-compat
+# Copy package files
+COPY package*.json ./
 
-# ---- Dependencies (cached layer) ----
-FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm ci
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
 
-# ---- Development ----
-FROM base AS development
-ENV NODE_ENV=development
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json package-lock.json ./
+# Copy source code
 COPY . .
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
+# Expose the port
 EXPOSE 3000
-# --watch gives you hot reload without nodemon as a dependency
-CMD ["node", "--watch", "src/index.js"]
 
-# ---- Production dependencies only ----
-FROM base AS prod-deps
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => { process.exit(1) })"
 
-# ---- Production ----
+# Development stage
+FROM base AS development
+USER root
+RUN npm ci && npm cache clean --force
+USER nodejs
+CMD ["npm", "run", "dev"]
+
+# Production stage
 FROM base AS production
-ENV NODE_ENV=production
-# Run as non-root
-RUN addgroup -g 1001 -S nodejs && adduser -S expressjs -u 1001
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --chown=expressjs:nodejs . .
-USER expressjs
-EXPOSE 3000
-CMD ["node", "src/index.js"]
+CMD ["npm", "start"]

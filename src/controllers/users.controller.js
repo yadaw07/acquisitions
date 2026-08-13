@@ -13,8 +13,8 @@ import {
   updateUserSchema,
 } from '#validations/users.validation.js';
 
-const validateId = async id => {
-  const paramsResult = userIdSchema.safeParse(id);
+const validateId = id => {
+  const paramsResult = userIdSchema.safeParse({ id });
 
   if (!paramsResult.success) {
     return {
@@ -53,7 +53,9 @@ export const getUserById = async (req, res, next) => {
       });
     }
 
-    const user = await getUser(id);
+    logger.warn('req id', id);
+
+    const [user] = await getUser(id);
 
     if (!user) {
       logger.warn(`User ${id} not found!`);
@@ -91,7 +93,7 @@ export const updateUserById = async (req, res, next) => {
       });
     }
 
-    const exsitingUser = await getUser(id);
+    const [exsitingUser] = await getUser(id);
 
     if (!exsitingUser) {
       logger.warn(`User ${id} not found!`);
@@ -140,11 +142,18 @@ export const deleteUserById = async (req, res, next) => {
       });
     }
 
-    const exsitingUser = await getUser(id);
+    const [exsitingUser] = await getUser(id);
 
     if (!exsitingUser) {
       logger.warn(`User ${id} not found!`);
       return res.status(404).json({ message: `User ${id} not found!` });
+    }
+
+    const isSelf = req.user.id === id;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isSelf && !isAdmin) {
+      return res.status(403).json({ error: 'Forbidden: you can only delete your own account' });
     }
 
     await deleteUser(id);
