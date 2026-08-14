@@ -153,7 +153,9 @@ export const deleteUserById = async (req, res, next) => {
     const isAdmin = req.user.role === 'admin';
 
     if (!isSelf && !isAdmin) {
-      return res.status(403).json({ error: 'Forbidden: you can only delete your own account' });
+      return res
+        .status(403)
+        .json({ error: 'Forbidden: you can only delete your own account' });
     }
 
     await deleteUser(id);

@@ -7,13 +7,13 @@ const transports = [
   new winston.transports.Console({
     format: isProduction
       ? winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.json()
-        )
+        winston.format.timestamp(),
+        winston.format.json()
+      )
       : winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple()
-        ),
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
   }),
 ];
 
