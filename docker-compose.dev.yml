@@ -62,9 +62,27 @@ services:
       - acquisitions-dev
     restart: unless-stopped
 
+  grafana:
+    image: grafana/grafana:12.1.1
+    container_name: acquisitions-grafana-dev
+    ports:
+      - '127.0.0.1:3001:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in the environment}
+    volumes:
+      - grafana-data-dev:/var/lib/grafana
+      - ./grafana/provisioning/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    depends_on:
+      - prometheus
+    networks:
+      - acquisitions-dev
+    restart: unless-stopped
+
 networks:
   acquisitions-dev:
     driver: bridge
 
 volumes:
   prometheus-data-dev:
+  grafana-data-dev:

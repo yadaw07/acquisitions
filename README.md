@@ -179,16 +179,25 @@ docker exec acquisitions-app-dev npm run db:migrate
 - Health Check: `http://localhost:3000/health`
 - Prometheus metrics: `http://localhost:3000/metrics`
 - Prometheus UI: `http://localhost:9090`
+- Grafana: `http://localhost:3001`
 - API Root: `http://localhost:3000/api`
 - Neon Local: `localhost:5432` (PostgreSQL)
 - Drizzle Studio: `http://localhost:4983` (run `docker exec acquisitions-app-dev npm run db:studio`)
 
 Prometheus is configured in [`prometheus/prometheus.yml`](./prometheus/prometheus.yml)
-and starts with the development Compose stack:
+and Grafana's Prometheus data source is provisioned from
+[`grafana/provisioning/datasources/datasources.yml`](./grafana/provisioning/datasources/datasources.yml).
+Set a local Grafana password before starting Compose:
 
 ```bash
+GRAFANA_ADMIN_PASSWORD=choose-a-local-password \
 docker compose -f docker-compose.dev.yml up --build -d
 ```
+
+In PowerShell, use `$env:GRAFANA_ADMIN_PASSWORD = 'choose-a-local-password'`
+before running the Compose command. Set the same variable before starting the
+production Compose stack. Grafana signs in with username `admin` by default;
+override it with `GRAFANA_ADMIN_USER` if desired.
 
 The Prometheus container joins the same Compose bridge network as the API and
 scrapes `app:3000/metrics`. Use the Compose **service name** (`app`) and the
@@ -197,6 +206,12 @@ or the host-published port from inside Prometheus. The same setup is included
 in the production Compose file. Prometheus stores its data in a named volume
 with a 15-day retention period. Its UI is bound to `127.0.0.1:9090`, so it is
 not exposed on external network interfaces by default.
+Grafana joins that network too and reaches Prometheus at
+`http://prometheus:9090`; the provisioning file configures this as its default
+data source automatically. Grafana's data volume persists its users, settings,
+and dashboards across container recreation. Both web interfaces bind to
+localhost only; configure access controls before exposing either in a
+production environment.
 
 The default 15-second scrape interval and 10-second timeout are suitable for
 local development and keep the timeout shorter than the interval. For faster
