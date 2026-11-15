@@ -177,9 +177,35 @@ docker exec acquisitions-app-dev npm run db:migrate
 
 - API: `http://localhost:3000`
 - Health Check: `http://localhost:3000/health`
+- Prometheus metrics: `http://localhost:3000/metrics`
+- Prometheus UI: `http://localhost:9090`
 - API Root: `http://localhost:3000/api`
 - Neon Local: `localhost:5432` (PostgreSQL)
 - Drizzle Studio: `http://localhost:4983` (run `docker exec acquisitions-app-dev npm run db:studio`)
+
+Prometheus is configured in [`prometheus/prometheus.yml`](./prometheus/prometheus.yml)
+and starts with the development Compose stack:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build -d
+```
+
+The Prometheus container joins the same Compose bridge network as the API and
+scrapes `app:3000/metrics`. Use the Compose **service name** (`app`) and the
+container port (`3000`) for this internal connection; do not use `localhost`
+or the host-published port from inside Prometheus. The same setup is included
+in the production Compose file. Prometheus stores its data in a named volume
+with a 15-day retention period. Its UI is bound to `127.0.0.1:9090`, so it is
+not exposed on external network interfaces by default.
+
+The default 15-second scrape interval and 10-second timeout are suitable for
+local development and keep the timeout shorter than the interval. For faster
+feedback while debugging, both can be reduced to `5s` in `prometheus.yml`.
+Restart or recreate the Prometheus container after changing its configuration:
+
+```bash
+docker compose -f docker-compose.dev.yml restart prometheus
+```
 
 #### Option 2: Local Node.js (Without Docker)
 

@@ -39,6 +39,25 @@ services:
     networks:
       - acquisitions-prod
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: acquisitions-prometheus-prod
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+    ports:
+      - '127.0.0.1:9090:9090'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data-prod:/prometheus
+    networks:
+      - acquisitions-prod
+    restart: unless-stopped
+
 networks:
   acquisitions-prod:
     driver: bridge
+
+volumes:
+  prometheus-data-prod:
