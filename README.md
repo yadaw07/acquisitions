@@ -413,6 +413,18 @@ _Clears `token` cookie._
 | `GET`  | `/`       | ❌   | Root endpoint, returns greeting          |
 | `GET`  | `/health` | ❌   | Health check (status, timestamp, uptime) |
 | `GET`  | `/api`    | ❌   | API info endpoint                        |
+| `GET`  | `/metrics`| ❌   | Prometheus metrics                       |
+
+#### `GET /metrics`
+
+The `/metrics` endpoint returns Prometheus text-format metrics. It includes
+default Node.js process/system metrics and HTTP request count and duration,
+with request labels based on the Express route template (for example,
+`/api/users/:id`) rather than individual parameter values.
+
+Configure your Prometheus server to scrape `http://<api-host>:<port>/metrics`.
+The endpoint is not authenticated, so restrict access to it through your
+deployment's network or ingress controls.
 
 #### `GET /health`
 

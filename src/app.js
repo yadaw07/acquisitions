@@ -11,6 +11,8 @@ import authRoutes from '#routes/auth.routes.js';
 import usersRoutes from '#routes/users.routes.js';
 
 import { securityMiddleware } from '#middleware/security.middleware.js';
+import { metricsMiddleware } from '#middleware/metrics.middleware.js';
+import { register } from '#config/prometheus.js';
 
 const app = express();
 
@@ -29,6 +31,7 @@ app.use(
 );
 
 app.use(securityMiddleware);
+app.use(metricsMiddleware);
 
 // Routes
 app.get('/', (req, res) => {
@@ -44,6 +47,11 @@ app.get('/health', (req, res) => {
     timestamps: new Date().toISOString(),
     uptime: process.uptime(),
   });
+});
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.send(await register.metrics());
 });
 
 app.get('/api', (req, res) => {
